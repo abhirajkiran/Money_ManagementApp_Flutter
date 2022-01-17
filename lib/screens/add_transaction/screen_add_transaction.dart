@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:money_app/db/category/category_db.dart';
+import 'package:money_app/db/transaction/transaction_db.dart';
 import 'package:money_app/main.dart';
 import 'package:money_app/models/category/category_model.dart';
+import 'package:money_app/models/transaction/transaction_model.dart';
 
 class ScreenaddTransaction extends StatefulWidget {
   static const routeName ='add-transaction';
@@ -19,6 +21,9 @@ class _ScreenaddTransactionState extends State<ScreenaddTransaction> {
 
 
  String ? _categoryID;
+ final _purposeTextEditingController=TextEditingController();
+ final  _amountTextEditingController=TextEditingController();
+
 
 
 
@@ -35,12 +40,14 @@ class _ScreenaddTransactionState extends State<ScreenaddTransaction> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               TextFormField(
+                controller: _purposeTextEditingController,
                  keyboardType: TextInputType.text,
                 decoration:InputDecoration(
                   hintText: 'Purpose'
                 )
               ),
               TextFormField(
+                controller: _amountTextEditingController,
                 keyboardType: TextInputType.number,
                 decoration:InputDecoration(
                   hintText: 'Amount'
@@ -122,6 +129,9 @@ class _ScreenaddTransactionState extends State<ScreenaddTransaction> {
                  return DropdownMenuItem(
                    value: e.id,
                    child: Text(e.name),
+                   onTap: (){
+                     _selectedCategoryModel=e;
+                   },
 
                    );
               }).toList(),
@@ -135,7 +145,9 @@ class _ScreenaddTransactionState extends State<ScreenaddTransaction> {
               },
               ),
               ElevatedButton(
-                onPressed: (){}, 
+                onPressed: (){
+                  addTransaction();
+                }, 
                 child: Text('Submit'),
                 )
 
@@ -146,5 +158,57 @@ class _ScreenaddTransactionState extends State<ScreenaddTransaction> {
         
       ),
     );
+  }
+
+  Future<void>addTransaction()async{
+    final _purposeText=_purposeTextEditingController.text;
+    final _amountText=_amountTextEditingController.text;
+    if(_purposeText.isEmpty){
+      return;
+    }
+    if(_amountText.isEmpty){
+      return;
+    }
+   /*  if(_categoryID==null){
+      return;
+    } */
+    if(_selectedDate==null){
+      return;
+    }
+   if(_selectedCategoryModel==null){
+     return;
+   }
+
+
+    final _parsedAmount= double.tryParse(_amountText);
+
+    if(_parsedAmount==null){
+      return;
+    }
+
+    //_selectedDate
+    //_selectedCategorytype
+    //CategoryID
+    
+
+   final _model= TransactionModel(
+      purpose: _purposeText,
+       amount: _parsedAmount,
+        date: _selectedDate!, 
+        type: _selectedCategoryType!,
+         category: _selectedCategoryModel!
+         );
+
+        await TransactionDB.instance.addTransaction(_model);
+
+        Navigator.of(context).pop();
+        TransactionDB.instance.refresh();
+
+
+
+  
+
+
+
   }
 }
